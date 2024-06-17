@@ -26,7 +26,7 @@ wave_adv_kreq = 10
 spawn_time = 1500
 show_wave = 0
 store_active = False
-vbucks = 400
+vbucks = 500
 
 current_weapon = 1
 
