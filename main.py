@@ -9,23 +9,29 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-game_active = True
+game_active = False
 shooting = False
 
 shot_cooldown_og = 4
 shot_cooldown = shot_cooldown_og
 p1_dmg = 10
 p1_kills = 0
+dead = False
 
 px = 500
 py = 300
 p_angle = 0
 
 current_wave = 1
-wave_adv_kreq = 10
+wave_adv_kreq = 20
 spawn_time = 1500
 show_wave = 0
 store_active = False
+
+menu_index = 0
+menu_played = False
+
+
 vbucks = 500
 
 current_weapon = 1
@@ -39,6 +45,14 @@ bullet_req = 0
 
 store_bg = pygame.image.load("storebg.png")
 store_bg_rect = store_bg.get_rect(center = (500, 300))
+
+menu_1 = pygame.image.load("menu1.png")
+menu_2 = pygame.image.load("menu2.png")
+
+death_screen = pygame.image.load("death_screen.png")
+death_screen_rect = death_screen.get_rect(center = (500, 300))
+
+menu_image_lst = [menu_1, menu_2]
 
 store_ak47 = pygame.image.load("shop_ak47.png")
 store_ak47_select = pygame.image.load("shop_ak47_select.png")
@@ -56,8 +70,13 @@ store_m16 = pygame.image.load("shop_m16.png")
 store_m16_select = pygame.image.load("shop_m16_select.png")
 store_m16_bought = pygame.image.load("shop_m16_bought.png")
 
+store_aa12 = pygame.image.load("shop_aa12.png")
+store_aa12_select = pygame.image.load("shop_aa12_select.png")
+store_aa12_bought = pygame.image.load("shop_aa12_bought.png")
+
 
 font = pygame.font.SysFont("yugothicuisemilight",20)
+bigfont = pygame.font.SysFont("cambria", 100)
 
 # game loop
 class Player(pygame.sprite.Sprite):
@@ -78,6 +97,9 @@ class Player(pygame.sprite.Sprite):
 
         self.m16_image = pygame.image.load("p1_m16.png").convert_alpha()
         self.m16_image = pygame.transform.rotate(self.m16_image, 90)
+
+        self.aa12_image = pygame.image.load("p1_aa12.png").convert_alpha()
+        self.aa12_image = pygame.transform.rotate(self.aa12_image, 90)
 
         self.og_image = self.pistol_image
 
@@ -167,15 +189,30 @@ class Player(pygame.sprite.Sprite):
             reloading = True
 
         if keys[pygame.K_5] and m16_bought:
-            p1_dmg = 10
+            p1_dmg = 15
             self.og_image = self.m16_image
 
             reload_time = 2
-            bullet_cap = 45
+            bullet_cap = 30
             bullet_remaining = 0
 
-            current_weapon = 4
-            shot_cooldown_og = 0.5
+            current_weapon = 5
+            shot_cooldown_og = 0.2
+            shot_cooldown = shot_cooldown_og
+
+            cur_reload_time = reload_time
+            reloading = True
+
+        if keys[pygame.K_6] and aa12_bought:
+            p1_dmg = 25
+            self.og_image = self.aa12_image
+
+            reload_time = 3
+            bullet_cap = 20
+            bullet_remaining = 0
+
+            current_weapon = 6
+            shot_cooldown_og = 1
             shot_cooldown = shot_cooldown_og
 
             cur_reload_time = reload_time
@@ -193,10 +230,11 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(self.rect.centerx, self.rect.centery))
 
     def hit(self):
-        global enemy
+        global enemy, dead
         if pygame.sprite.spritecollide(self, enemy, False, pygame.sprite.collide_mask):
             self.hp -= 1
             if self.hp <= 0:
+                dead = True
                 self.kill()
 
     def health_bar(self):
@@ -230,13 +268,50 @@ class Enemy(pygame.sprite.Sprite):
 
     def __init__(self):
         super().__init__()
-        self.og_image = pygame.image.load("zombie.png").convert_alpha()
-        self.og_image = pygame.transform.rotozoom(self.og_image, -90, 0.2)
+        global current_wave
 
-        self.image = pygame.image.load("zombie.png").convert_alpha()
-        self.image = pygame.transform.rotozoom(self.image, -90, 0.2)
+        self.normal_image = pygame.image.load("zombie.png").convert_alpha()
+        self.normal_image = pygame.transform.rotozoom(self.normal_image, -90, 0.2)
 
-        self.hp = 30
+        self.scooter_image = pygame.image.load("zombie_scooter.png").convert_alpha()
+        self.scooter_image = pygame.transform.rotozoom(self.scooter_image, -90, 0.2)
+
+        self.brute_image = pygame.image.load("zombie_brute.png").convert_alpha()
+        self.brute_image = pygame.transform.rotozoom(self.brute_image, -90, 0.2)
+
+        self.mega_brute_image = pygame.image.load("zombie_mega_brute.png").convert_alpha()
+        self.mega_brute_image = pygame.transform.rotozoom(self.mega_brute_image, -90, 0.2)
+
+        image_lst = [self.normal_image]
+
+        if current_wave >= 2:
+            image_lst += [self.scooter_image]
+        if current_wave >= 5:
+            image_lst += [self.brute_image]
+        if current_wave >= 10:
+            image_lst += [self.mega_brute_image]
+
+        zombie_type = random.randint(0, len(image_lst)-1)
+
+        if zombie_type == 0:
+            self.speed = 1
+            self.hp = 30
+
+        if zombie_type == 1:
+            self.speed = 1.5
+            self.hp = 15
+
+        if zombie_type == 2:
+            self.speed = 0.75
+            self.hp = 50
+
+        if zombie_type == 3:
+            self.speed = 0.5
+            self.hp = 100
+
+        self.og_image = image_lst[zombie_type]
+
+        self.image = self.og_image
 
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -267,8 +342,8 @@ class Enemy(pygame.sprite.Sprite):
         mvy = math.cos(enemy_angle)
 
         self.image = pygame.transform.rotate(self.og_image, math.degrees(enemy_angle))
-        self.x += mvx
-        self.y += mvy
+        self.x += mvx*self.speed
+        self.y += mvy*self.speed
 
         self.rect = self.image.get_rect(center = (self.x, self.y))
 
@@ -364,7 +439,7 @@ class Shop_Item(pygame.sprite.Sprite):
                 self.image = self.image_og
 
     def purchase(self):
-        global vbucks, ak_47_bought, hugh_shotty_bought, mp9_bought, m16_bought
+        global vbucks, ak_47_bought, hugh_shotty_bought, mp9_bought, m16_bought, aa12_bought
         if self.rect.collidepoint(mouse_pos):
             if vbucks >= self.price:
                 if self.item_name == "AK 47 (115 V)" and ak_47_bought == False:
@@ -382,10 +457,15 @@ class Shop_Item(pygame.sprite.Sprite):
                     self.image = self.image_bought
                     mp9_bought = True
                     vbucks -= self.price
-                if self.item_name == "M16 (130 V)" and m16_bought == False:
+                if self.item_name == "M16 (150 V)" and m16_bought == False:
                     self.bought = True
                     self.image = self.image_bought
                     m16_bought = True
+                    vbucks -= self.price
+                if self.item_name == "AA 12 [w/ switch] (350 V)" and aa12_bought == False:
+                    self.bought = True
+                    self.image = self.image_bought
+                    aa12_bought = True
                     vbucks -= self.price
 
 
@@ -412,11 +492,12 @@ def wave():
         show_wave = 1
         pygame.time.set_timer(enemy_spawn, spawn_time)
     
-    wave_text = font.render("WAVE "+str(current_wave), True, "black")
+    wave_text = bigfont.render("WAVE "+str(current_wave), True, "black")
     wave_text_rect = wave_text.get_rect(center = (500, 300))
 
     if show_wave > 0:
         pygame.draw.rect(screen, "white", wave_text_rect)
+        pygame.draw.rect(screen, "black", wave_text_rect, 4)
         screen.blit(wave_text, wave_text_rect)
         show_wave -= 0.01
 
@@ -435,6 +516,14 @@ def shop():
 
     if store_active:
         screen.blit(store_bg, store_bg_rect)
+
+
+
+def main_menu():
+    global game_active, menu_played, menu_index, menu_image_lst, menu_1, menu_2
+    if menu_played == False:
+        menu_rect = menu_image_lst[menu_index].get_rect(center = (500, 300))
+        screen.blit(menu_image_lst[menu_index], menu_rect)
 
 
 
@@ -460,7 +549,10 @@ mp9_bought = False
 shop_items.add(Shop_Item(store_mp9, store_mp9_select, store_mp9_bought, 640, 165 ,"B & T MP9 (80 V)", 80, "[PRESS 4 TO USE]"))
 
 m16_bought = False
-shop_items.add(Shop_Item(store_m16, store_m16_select, store_m16_bought, 160, 450 ,"M16 (130 V)", 130, "[PRESS 5 TO USE]"))
+shop_items.add(Shop_Item(store_m16, store_m16_select, store_m16_bought, 160, 450 ,"M16 (150 V)", 150, "[PRESS 5 TO USE]"))
+
+aa12_bought = False
+shop_items.add(Shop_Item(store_aa12, store_aa12_select, store_aa12_bought, 400, 450 ,"AA 12 [w/ switch] (350 V)", 350, "[PRESS 6 TO USE]"))
 
 
 enemy_spawn = pygame.USEREVENT + 1
@@ -470,6 +562,7 @@ pygame.time.set_timer(enemy_spawn, spawn_time)
 
 run = True
 
+main_menu()
 while run:
 
     mouse_pos = pygame.mouse.get_pos()
@@ -506,22 +599,41 @@ while run:
             shooting = False
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_b:
-                shop()
+            if menu_played:
+                if event.key == pygame.K_b:
+                    shop()
+            if event.key == pygame.K_UP:
+                menu_index = 0
+                main_menu()
+            if event.key == pygame.K_DOWN:
+                menu_index = 1
+                main_menu()
+            if event.key == pygame.K_SPACE:
+                if menu_index == 0:
+                    game_active = True
+                    menu_played = True
+
+
 
         if game_active:
             if event.type == enemy_spawn:
                 enemy.add(Enemy())
 
-    vbucks_text = font.render("VBUCKS: "+ str(vbucks), True, "black")
-    vbucks_text_rect = vbucks_text.get_rect(topleft=(10, 60))
 
     if game_active:
+
         if shooting:
             if shot_cooldown <= 0 and bullet_remaining > 0 and reloading == False:
-                if current_weapon == 2:
+                if current_weapon == 2 or current_weapon == 6:
                     for i in range(3):
                         bullet.add(Bullet(p_angle + random.randint(-15, 15)))
+                if current_weapon == 5:
+                    shot_cooldown_og = 0.2
+                    if (bullet_cap - bullet_remaining) % 3 == 0 and bullet_remaining != 30:
+                        shot_cooldown_og = 3
+                    bullet.add(Bullet(p_angle))
+
+
 
                 else:
                     bullet.add(Bullet(p_angle))
@@ -534,6 +646,9 @@ while run:
 
         kill_text = font.render("KILLS: "+ str(p1_kills), True, "black")
         kill_text_rect = kill_text.get_rect(topleft = (10, 35))
+
+        vbucks_text = font.render("VBUCKS: " + str(vbucks), True, "black")
+        vbucks_text_rect = vbucks_text.get_rect(topleft=(10, 60))
 
         screen.fill("grey")
 
@@ -551,10 +666,12 @@ while run:
 
         screen.blit(kill_text, kill_text_rect)
         screen.blit(vbucks_text, vbucks_text_rect)
+
     if store_active:
         shop_items.draw(screen)
         shop_items.update()
-
+    if dead:
+        screen.blit(death_screen, death_screen_rect)
 
     pygame.time.Clock().tick(60)
     pygame.display.flip()
