@@ -36,7 +36,7 @@ menu_index = 0
 menu_played = False
 
 
-vbucks = 0
+vbucks = 500
 
 current_weapon = 1
 
