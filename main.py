@@ -1,20 +1,24 @@
+#IMPORTING MODULES
+
 import pygame
 import math
 import random
 
-
+#PYGAME INITALIZATION
 pygame.init()
 
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+#INITIALIZING VARIABLES
+
 game_active = False
 shooting = False
 
 shot_cooldown_og = 4
 shot_cooldown = shot_cooldown_og
-p1_dmg = 10
+p1_dmg = 15
 p1_kills = 0
 dead = False
 
@@ -24,7 +28,7 @@ p_angle = 0
 
 current_wave = 1
 wave_adv_kreq = 20
-spawn_time = 1500
+spawn_time = 1700
 show_wave = 0
 store_active = False
 
@@ -32,16 +36,18 @@ menu_index = 0
 menu_played = False
 
 
-vbucks = 500
+vbucks = 0
 
 current_weapon = 1
 
-bullet_cap = 10
-bullet_remaining = 10
+bullet_cap = 8
+bullet_remaining = 8
 reload_time = 0.5
 cur_reload_time = 0
 reloading = False
 bullet_req = 0
+
+#INITALIZING IMAGES
 
 store_bg = pygame.image.load("storebg.png")
 store_bg_rect = store_bg.get_rect(center = (500, 300))
@@ -75,45 +81,47 @@ store_aa12_select = pygame.image.load("shop_aa12_select.png")
 store_aa12_bought = pygame.image.load("shop_aa12_bought.png")
 
 
+#INITALIZING FONTS
 font = pygame.font.SysFont("yugothicuisemilight",20)
 bigfont = pygame.font.SysFont("cambria", 100)
 
-# game loop
-class Player(pygame.sprite.Sprite):
+#PLAYER CLASS
+class Player(pygame.sprite.Sprite): #A sprite class makes us able to combine rectangles and images into one (much easier for collision as well)
 
     def __init__(self):
-        super().__init__()
-        self.pistol_image = pygame.image.load("p1.png").convert_alpha()
-        self.pistol_image = pygame.transform.rotate(self.pistol_image, 90)
+        super().__init__() #initalizes pygame sprite tools into the initialization method
+        self.pistol_image = pygame.image.load("p1.png").convert_alpha() #converts our image into a more usable format for pygame (less laggy)
+
 
         self.ak_image = pygame.image.load("p1_ak.png").convert_alpha()
-        self.ak_image = pygame.transform.rotate(self.ak_image, 90)
+
 
         self.hugh_image = pygame.image.load("p1_hugh_shotty.png").convert_alpha()
-        self.hugh_image = pygame.transform.rotate(self.hugh_image, 90)
+
 
         self.mp9_image = pygame.image.load("p1_mp9.png").convert_alpha()
-        self.mp9_image = pygame.transform.rotate(self.mp9_image, 90)
+
 
         self.m16_image = pygame.image.load("p1_m16.png").convert_alpha()
-        self.m16_image = pygame.transform.rotate(self.m16_image, 90)
+
 
         self.aa12_image = pygame.image.load("p1_aa12.png").convert_alpha()
-        self.aa12_image = pygame.transform.rotate(self.aa12_image, 90)
 
-        self.og_image = self.pistol_image
 
-        self.image = pygame.image.load("p1.png").convert_alpha()
-        self.image = pygame.transform.rotate(self.og_image, 90)
+        self.og_image = self.pistol_image #og_image allows us to properly rotate the image according to the mouse (without it the current "rotated" sprite would continue to rotate more than expected)
 
-        self.angle = 0
-        self.rect = self.image.get_rect(center=(500, 300))
+        self.image = self.pistol_image
 
-        self.hp = 200
+
+        self.angle = 0 #initializes our self.angle variable
+        self.rect = self.image.get_rect(center=(500, 300)) #sets our player in the middle of the screen at the start
+
+        self.hp = 200 #initalizes player health
 
     def key_input(self):
         global shot_cooldown, shot_cooldown_og, p1_dmg, keys, current_weapon, bullet_remaining, bullet_cap, reload_time, reloading, cur_reload_time, bullet_req
-        #keys = pygame.key.get_pressed()
+
+        #the WASD input moves the player rectangle (which the player image is on)
         if keys[pygame.K_d]:
             self.rect.centerx += 1
         if keys[pygame.K_a]:
@@ -123,11 +131,13 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_s]:
             self.rect.centery += 1
 
+        #Initiates a reload
         if keys[pygame.K_r]:
-            cur_reload_time = reload_time
-            bullet_remaining = 0
+            cur_reload_time = reload_time #resets the current reload time to the proper value before reloading
+            bullet_remaining = 0 #this line is required in order to ensure the reload animation work properly (doesn't overshoot the white barrier)
             reloading = True
 
+        #Next inputs are for changing weapons
         if keys[pygame.K_1]:
             p1_dmg = 10
             self.og_image = self.pistol_image
@@ -143,7 +153,7 @@ class Player(pygame.sprite.Sprite):
             cur_reload_time = reload_time
             reloading = True
 
-        if keys[pygame.K_2] and hugh_shotty_bought:
+        if keys[pygame.K_2] and hugh_shotty_bought: #makes sure that the weapon is bought in the shop
             p1_dmg = 50
             self.og_image = self.hugh_image
 
@@ -220,26 +230,25 @@ class Player(pygame.sprite.Sprite):
 
 
 
-    def mouse_input(self):
+    def mouse_input(self): #this is for player rotation according to mouse movement
         global mouse_pos, p_angle
-        x_dist = mouse_pos[0] - self.rect.centerx
-        y_dist = -(mouse_pos[1] - self.rect.centery)
-        self.angle = math.degrees(math.atan2(y_dist, x_dist))
-        p_angle = self.angle
-        self.image = pygame.transform.rotate(self.og_image, self.angle - 90)
-        self.rect = self.image.get_rect(center=(self.rect.centerx, self.rect.centery))
+
+        x_dist = mouse_pos[0] - self.rect.centerx #finds the distance between our player and the cursor along the x-axis
+        y_dist = -(mouse_pos[1] - self.rect.centery) #finds the distance between our player and the cursor along the y-axis (the value must be negative because pygame doesn't use the cartesian plane)
+        self.angle = math.degrees(math.atan2(y_dist, x_dist)) #calculates the angle of our player using trig. (tan. inverse) --> (y_dist is opp., x_dist is adj)
+        p_angle = self.angle #stores this as a global variables to be used outside the class
+        self.image = pygame.transform.rotate(self.og_image, self.angle)  #rotates our sprite towards the cursor
+        self.rect = self.image.get_rect(center=(self.rect.centerx, self.rect.centery)) #resets the x and y position of our rectangles (our rectangle moves during the rotation step above)
 
     def hit(self):
         global enemy, dead
-        if pygame.sprite.spritecollide(self, enemy, False, pygame.sprite.collide_mask):
+        if pygame.sprite.spritecollide(self, enemy, False, pygame.sprite.collide_mask): #makes player and enemy collision between masks instead of rects (much better hitboxes)
             self.hp -= 1
             if self.hp <= 0:
                 dead = True
                 self.kill()
 
     def health_bar(self):
-        #pygame.draw.rect(screen, "red", ((10, 10),(self.hp, 25))) USE FOR ZOMBIES (DO NOT DELETE THIS HUGH DAVID FRASER)
-        #pygame.draw.polygon(screen, "white", ((17, 10), (10, 25), (210, 25), (217, 10)))
 
         pygame.draw.polygon(screen, "green", ((17, 10), (10, 25), (self.hp + 10, 25), (self.hp + 17, 10)))
         pygame.draw.polygon(screen, (0, 160, 0), ((13, 20), (10, 25), (self.hp + 10, 25), (self.hp + 13, 20)))
@@ -247,20 +256,20 @@ class Player(pygame.sprite.Sprite):
 
     def ammo_bar(self):
         global bullet_remaining, bullet_cap
-        pygame.draw.rect(screen, "yellow", ((17, 580), (bullet_remaining * 200/bullet_cap, 15)))
+        pygame.draw.rect(screen, "yellow", ((17, 580), (bullet_remaining * 200/bullet_cap, 15))) #bullet_remaning is divided by bullet_cap to maintain the same size for every gun (ratios)
         pygame.draw.rect(screen, "white", ((17, 580), (200, 15)), 2)
 
 
 
 
-    def update(self):
+    def update(self): #combines all methods in the class into one that can be used in the game loop (much cleaner and organized)
         global px, py
         self.mouse_input()
         self.key_input()
         self.hit()
         self.health_bar()
         self.ammo_bar()
-        px = self.rect.centerx
+        px = self.rect.centerx #stores player rectangle coordinate values as a global variable for external use
         py = self.rect.centery
 
 
@@ -284,6 +293,7 @@ class Enemy(pygame.sprite.Sprite):
 
         image_lst = [self.normal_image]
 
+        #Enemy variation and possibility (wave based)
         if current_wave >= 2:
             image_lst += [self.scooter_image]
         if current_wave >= 5:
@@ -291,8 +301,9 @@ class Enemy(pygame.sprite.Sprite):
         if current_wave >= 10:
             image_lst += [self.mega_brute_image]
 
-        zombie_type = random.randint(0, len(image_lst)-1)
+        zombie_type = random.randint(0, len(image_lst)-1) #chooses randomly what the spawn enemy type is
 
+        #initialize enemy stats
         if zombie_type == 0:
             self.speed = 1
             self.hp = 30
@@ -315,6 +326,7 @@ class Enemy(pygame.sprite.Sprite):
 
         self.mask = pygame.mask.from_surface(self.image)
 
+        #random spawn point generation
         spawn_point = random.choice(["top", "bottom", "left", "right"])
         if spawn_point == "top":
             self.rect = self.image.get_rect(center = (random.randint(0,1000), 0))
@@ -335,11 +347,11 @@ class Enemy(pygame.sprite.Sprite):
 
     def chase(self):
         global px, py
-        enemy_dx = px - self.rect.centerx
-        enemy_dy = py - self.rect.centery
-        enemy_angle = math.atan2(enemy_dx, enemy_dy)
-        mvx = math.sin(enemy_angle)
-        mvy = math.cos(enemy_angle)
+        enemy_dx = px - self.rect.centerx #finds the distance between our enemy and the player along the x-axis
+        enemy_dy = py - self.rect.centery #finds the distance between our enemy and the player along the y-axis
+        enemy_angle = math.atan2(enemy_dx, enemy_dy) #calculates the enemy angle using trig. (identical to player angle calculations)
+        mvx = math.sin(enemy_angle) #calculates the amount the enemy needs to move along the x-axis
+        mvy = math.cos(enemy_angle) #calculates the amount the enemy needs to move along the y-axis
 
         self.image = pygame.transform.rotate(self.og_image, math.degrees(enemy_angle))
         self.x += mvx*self.speed
@@ -385,9 +397,9 @@ class Bullet(pygame.sprite.Sprite):
 
     def shoot(self):
 
-        mvx = math.sin(math.radians(self.angle))
-        mvy = math.cos(math.radians(self.angle))
-        self.image = pygame.transform.rotozoom(self.og_image, self.angle, 0.17)
+        mvx = math.sin(math.radians(self.angle)) #calculates the required movement along the x-axis
+        mvy = math.cos(math.radians(self.angle)) #calculates the required movement along the y-axis
+        self.image = pygame.transform.rotozoom(self.og_image, self.angle, 0.17) #rotates the sprite
         self.x += mvx*25
         self.y += mvy*25
         self.rect = self.image.get_rect(center = (self.x, self.y))
@@ -406,18 +418,18 @@ class Shop_Item(pygame.sprite.Sprite):
         super().__init__()
         self.image_og = surface
         self.image = self.image_og
-        self.image_select = surface_select
-        self.image_bought = surface_bought
+        self.image_select = surface_select #image that is shown when the cursor is hover over the item in the shop
+        self.image_bought = surface_bought #image that is shown when the player already bought the item
 
 
         self.rect = self.image.get_rect(center = (x, y))
 
         self.item_name = item_name
 
-        self.text = font.render(item_name, True, "white")
+        self.text = font.render(item_name, True, "white") #text shows what weapon is being sold above the item
         self.text_rect = self.text.get_rect(center = (x, y - 135))
 
-        self.bought_text = font.render(bought_text, True, "white")
+        self.bought_text = font.render(bought_text, True, "white") #text shows what key to press in order to use the item
         self.bought_text_rect = self.bought_text.get_rect(center=(x, y - 65))
 
         self.price = price
@@ -429,7 +441,7 @@ class Shop_Item(pygame.sprite.Sprite):
             pygame.draw.rect(screen, "black", self.bought_text_rect, )
             screen.blit(self.bought_text, self.bought_text_rect)
 
-    def select(self):
+    def select(self): #shows image with white outline when mouse is hovering over item
         global mouse_pos
         if self.bought == False:
             if self.rect.collidepoint(mouse_pos):
@@ -441,8 +453,8 @@ class Shop_Item(pygame.sprite.Sprite):
     def purchase(self):
         global vbucks, ak_47_bought, hugh_shotty_bought, mp9_bought, m16_bought, aa12_bought
         if self.rect.collidepoint(mouse_pos):
-            if vbucks >= self.price:
-                if self.item_name == "AK 47 (115 V)" and ak_47_bought == False:
+            if vbucks >= self.price: #checks if the amount of vbucks is enough to buy the item
+                if self.item_name == "AK 47 (115 V)" and ak_47_bought == False: #changes the bought status of thw weapon to True
                     self.bought = True
                     self.image = self.image_bought
                     ak_47_bought = True
@@ -563,6 +575,8 @@ pygame.time.set_timer(enemy_spawn, spawn_time)
 run = True
 
 main_menu()
+
+#GAME LOOP
 while run:
 
     mouse_pos = pygame.mouse.get_pos()
