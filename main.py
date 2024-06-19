@@ -153,7 +153,7 @@ class Player(pygame.sprite.Sprite): #A sprite class makes us able to combine rec
             cur_reload_time = reload_time
             reloading = True
 
-        if keys[pygame.K_2] and hugh_shotty_bought: #makes sure that the weapon is bought in the shop
+        elif keys[pygame.K_2] and hugh_shotty_bought: #makes sure that the weapon is bought in the shop
             p1_dmg = 50
             self.og_image = self.hugh_image
 
@@ -168,7 +168,7 @@ class Player(pygame.sprite.Sprite): #A sprite class makes us able to combine rec
             cur_reload_time = reload_time
             reloading = True
 
-        if keys[pygame.K_3] and ak_47_bought:
+        elif keys[pygame.K_3] and ak_47_bought:
             p1_dmg = 15
             self.og_image = self.ak_image
 
@@ -183,7 +183,7 @@ class Player(pygame.sprite.Sprite): #A sprite class makes us able to combine rec
             cur_reload_time = reload_time
             reloading = True
 
-        if keys[pygame.K_4] and mp9_bought:
+        elif keys[pygame.K_4] and mp9_bought:
             p1_dmg = 10
             self.og_image = self.mp9_image
 
@@ -198,7 +198,7 @@ class Player(pygame.sprite.Sprite): #A sprite class makes us able to combine rec
             cur_reload_time = reload_time
             reloading = True
 
-        if keys[pygame.K_5] and m16_bought:
+        elif keys[pygame.K_5] and m16_bought:
             p1_dmg = 15
             self.og_image = self.m16_image
 
@@ -213,7 +213,7 @@ class Player(pygame.sprite.Sprite): #A sprite class makes us able to combine rec
             cur_reload_time = reload_time
             reloading = True
 
-        if keys[pygame.K_6] and aa12_bought:
+        elif keys[pygame.K_6] and aa12_bought:
             p1_dmg = 25
             self.og_image = self.aa12_image
 
@@ -308,15 +308,15 @@ class Enemy(pygame.sprite.Sprite):
             self.speed = 1
             self.hp = 30
 
-        if zombie_type == 1:
+        elif zombie_type == 1:
             self.speed = 1.5
             self.hp = 15
 
-        if zombie_type == 2:
+        elif zombie_type == 2:
             self.speed = 0.75
             self.hp = 50
 
-        if zombie_type == 3:
+        elif zombie_type == 3:
             self.speed = 0.5
             self.hp = 100
 
@@ -330,11 +330,11 @@ class Enemy(pygame.sprite.Sprite):
         spawn_point = random.choice(["top", "bottom", "left", "right"])
         if spawn_point == "top":
             self.rect = self.image.get_rect(center = (random.randint(0,1000), 0))
-        if spawn_point == "bottom":
+        elif spawn_point == "bottom":
             self.rect = self.image.get_rect(center = (random.randint(0,1000), 600))
-        if spawn_point == "left":
+        elif spawn_point == "left":
             self.rect = self.image.get_rect(center = (0, random.randint(0,600)))
-        if spawn_point == "right":
+        elif spawn_point == "right":
             self.rect = self.image.get_rect(center = (1000, random.randint(0,600)))
 
 
@@ -435,6 +435,7 @@ class Shop_Item(pygame.sprite.Sprite):
         self.price = price
         self.bought = False
 
+
     def display_text(self):
         screen.blit(self.text, self.text_rect)
         if self.bought:
@@ -454,27 +455,27 @@ class Shop_Item(pygame.sprite.Sprite):
         global vbucks, ak_47_bought, hugh_shotty_bought, mp9_bought, m16_bought, aa12_bought
         if self.rect.collidepoint(mouse_pos):
             if vbucks >= self.price: #checks if the amount of vbucks is enough to buy the item
-                if self.item_name == "AK 47 (115 V)" and ak_47_bought == False: #changes the bought status of thw weapon to True
+                if self.item_name == "Make Great 47 (115 V)" and ak_47_bought == False: #changes the bought status of thw weapon to True
                     self.bought = True
                     self.image = self.image_bought
                     ak_47_bought = True
                     vbucks -= self.price
-                if self.item_name == "HUGH'S DB (50 V)" and hugh_shotty_bought == False:
+                if self.item_name == "HUGH'S DB [nerfed] (50 V)" and hugh_shotty_bought == False:
                     self.bought = True
                     self.image = self.image_bought
                     hugh_shotty_bought = True
                     vbucks -= self.price
-                if self.item_name == "B & T MP9 (80 V)" and mp9_bought == False:
+                if self.item_name == "Ryan's Toys Review 9 (80 V)" and mp9_bought == False:
                     self.bought = True
                     self.image = self.image_bought
                     mp9_bought = True
                     vbucks -= self.price
-                if self.item_name == "M16 (150 V)" and m16_bought == False:
+                if self.item_name == "Mr Beast (150 V)" and m16_bought == False:
                     self.bought = True
                     self.image = self.image_bought
                     m16_bought = True
                     vbucks -= self.price
-                if self.item_name == "AA 12 [w/ switch] (350 V)" and aa12_bought == False:
+                if self.item_name == "Miniou-12 [w/ switch] (350 V)" and aa12_bought == False:
                     self.bought = True
                     self.image = self.image_bought
                     aa12_bought = True
@@ -552,19 +553,19 @@ bullet = pygame.sprite.Group()
 shop_items = pygame.sprite.Group()
 
 hugh_shotty_bought = False
-shop_items.add(Shop_Item(store_hugh_shotty, store_hugh_shotty_select, store_hugh_shotty_bought, 160, 165 ,"HUGH'S DB (50 V)", 50, "[PRESS 2 TO USE]"))
+shop_items.add(Shop_Item(store_hugh_shotty, store_hugh_shotty_select, store_hugh_shotty_bought, 160, 165 ,"HUGH'S DB [nerfed] (50 V)", 50, "[PRESS 2 TO USE]"))
 
 ak_47_bought = False
-shop_items.add(Shop_Item(store_ak47, store_ak47_select, store_ak47_bought, 400, 165 ,"AK 47 (115 V)", 115, "[PRESS 3 TO USE]"))
+shop_items.add(Shop_Item(store_ak47, store_ak47_select, store_ak47_bought, 400, 165 ,"Make Great 47 (115 V)", 115, "[PRESS 3 TO USE]"))
 
 mp9_bought = False
-shop_items.add(Shop_Item(store_mp9, store_mp9_select, store_mp9_bought, 640, 165 ,"B & T MP9 (80 V)", 80, "[PRESS 4 TO USE]"))
+shop_items.add(Shop_Item(store_mp9, store_mp9_select, store_mp9_bought, 640, 165 ,"Ryan's Toys Review 9 (80 V)", 80, "[PRESS 4 TO USE]"))
 
 m16_bought = False
-shop_items.add(Shop_Item(store_m16, store_m16_select, store_m16_bought, 160, 450 ,"M16 (150 V)", 150, "[PRESS 5 TO USE]"))
+shop_items.add(Shop_Item(store_m16, store_m16_select, store_m16_bought, 160, 450 ,"Mr Beast (150 V)", 150, "[PRESS 5 TO USE]"))
 
 aa12_bought = False
-shop_items.add(Shop_Item(store_aa12, store_aa12_select, store_aa12_bought, 400, 450 ,"AA 12 [w/ switch] (350 V)", 350, "[PRESS 6 TO USE]"))
+shop_items.add(Shop_Item(store_aa12, store_aa12_select, store_aa12_bought, 400, 450 ,"Miniou-12 [w/ switch] (350 V)", 350, "[PRESS 6 TO USE]"))
 
 
 enemy_spawn = pygame.USEREVENT + 1
@@ -583,9 +584,8 @@ while run:
     keys = pygame.key.get_pressed()
 
 
-    if reloading: #runs this 200 times
-        cur_reload_time -= 0.01 #cur_reload_time = reload_time = 2
-        #bullet_remaining += bullet_req/(reload_time*100)
+    if reloading:
+        cur_reload_time -= 0.01
         bullet_remaining += bullet_cap / (reload_time * 100)
         if cur_reload_time <= 0:
             bullet_remaining = bullet_cap
@@ -623,7 +623,7 @@ while run:
                 menu_index = 1
                 main_menu()
             if event.key == pygame.K_SPACE:
-                if menu_index == 0:
+                if menu_index == 0 and menu_played == False:
                     game_active = True
                     menu_played = True
 
@@ -641,7 +641,7 @@ while run:
                 if current_weapon == 2 or current_weapon == 6:
                     for i in range(3):
                         bullet.add(Bullet(p_angle + random.randint(-15, 15)))
-                if current_weapon == 5:
+                elif current_weapon == 5:
                     shot_cooldown_og = 0.2
                     if (bullet_cap - bullet_remaining) % 3 == 0 and bullet_remaining != 30:
                         shot_cooldown_og = 3
